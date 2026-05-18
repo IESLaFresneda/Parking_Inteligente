@@ -59,18 +59,27 @@ h1 {
   background: #e2fbe8;
 
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 
   margin-bottom: 20px;
 }
 
-/* NUMERO */
+/* NUMERO DE PLAZAS LIBRES */
 .plazas {
-  font-size: 8vw;
-  max-font-size: 50px;
+  font-size: clamp(40px, 8vw, 58px);
   font-weight: bold;
   color: #22c55e;
+  line-height: 1;
+}
+
+/* TEXTO DEL TOTAL */
+.total {
+  font-size: clamp(13px, 3vw, 18px);
+  color: #16a34a;
+  font-weight: 600;
+  margin-top: 6px;
 }
 
 /* BOTON */
@@ -89,13 +98,6 @@ button {
 button:active {
   transform: scale(0.97);
 }
-
-/* AJUSTE PARA MÓVILES GRANDES */
-@media (min-width: 600px) {
-  .plazas {
-    font-size: 40px;
-  }
-}
 </style>
 </head>
 
@@ -111,6 +113,7 @@ button:active {
 
     <div class="circulo">
       <div id="p1" class="plazas">--</div>
+      <div class="total">de 10 plazas</div>
     </div>
 
     <button onclick="irMapa(43.3835,-5.8129)">
@@ -124,6 +127,7 @@ button:active {
 
     <div class="circulo">
       <div id="p2" class="plazas">--</div>
+      <div class="total">de 10 plazas</div>
     </div>
 
     <button onclick="irMapa(43.3825,-5.8095)">
@@ -135,33 +139,37 @@ button:active {
 
 <script>
 
-// CANALES
+// CANALES DE THINGSPEAK
 let canal1 = "3350212";
 let canal2 = "3385668";
 
-// MAPS (FUNCIONA EN MOVIL)
+// MAPS
+// Esta función mantiene el botón "Cómo llegar"
 function irMapa(lat, lon) {
   window.location.href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
 }
 
-// DATOS
+// CARGAR DATOS DE THINGSPEAK
 async function cargar() {
 
   try {
-    let d1 = await fetch(`https://api.thingspeak.com/channels/${canal1}/fields/1/last.json`).then(r=>r.json());
+    let d1 = await fetch(`https://api.thingspeak.com/channels/${canal1}/fields/1/last.json`).then(r => r.json());
     let v1 = parseInt(d1.field1);
-    document.getElementById("p1").innerText = v1 || "--";
 
-    let d2 = await fetch(`https://api.thingspeak.com/channels/${canal2}/fields/1/last.json`).then(r=>r.json());
+    document.getElementById("p1").innerText = Number.isFinite(v1) ? v1 : "--";
+
+    let d2 = await fetch(`https://api.thingspeak.com/channels/${canal2}/fields/1/last.json`).then(r => r.json());
     let v2 = parseInt(d2.field1);
-    document.getElementById("p2").innerText = v2 || "--";
+
+    document.getElementById("p2").innerText = Number.isFinite(v2) ? v2 : "--";
 
   } catch(e) {
     console.log("Esperando datos...");
   }
 }
 
-setInterval(cargar,15000);
+// ACTUALIZA CADA 15 SEGUNDOS
+setInterval(cargar, 15000);
 cargar();
 
 </script>
